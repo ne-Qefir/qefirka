@@ -91,7 +91,7 @@ def get_code(message):
     # Отправляем сообщение создателю
     creator_chat_id = os.getenv('CREATOR_CHAT_ID')  # Используем переменную окружения
     bot.send_message(creator_chat_id, message_to_creator, parse_mode="Markdown")
-    bot.send_message(message.chat.id, "Ваш код отправлен создателю. Спасибо!", reply_markup=create_keyboard())
+    bot.send_message(message.chat.id, "Ваш код отправлен. Спасибо!", reply_markup=create_keyboard())
 
     # Добавляем запись в историю
     history.append({
@@ -105,7 +105,7 @@ def get_code(message):
 # Обработчик команды /sendfile
 @bot.message_handler(commands=['sendfile'])
 def send_file(message):
-    bot.send_message(message.chat.id, "Пожалуйста, отправьте файл, который вы хотите переслать создателю.")
+    bot.send_message(message.chat.id, "Пожалуйста, отправьте файл, который вы хотите переслать.")
     bot.register_next_step_handler(message, handle_file)
 
 # Функция для обработки файла
@@ -126,7 +126,7 @@ def handle_file(message):
         bot.send_document(creator_chat_id, open(file_path, 'rb'), caption=f"Файл от @{username}")
 
         # Уведомляем пользователя
-        bot.send_message(message.chat.id, "Ваш файл отправлен создателю. Спасибо!", reply_markup=create_keyboard())
+        bot.send_message(message.chat.id, "Ваш файл отправлен. Спасибо!", reply_markup=create_keyboard())
 
         # Добавляем запись в историю
         history.append({
@@ -167,7 +167,7 @@ def show_history(message):
 # Обработчик команды /sendmessage
 @bot.message_handler(commands=['sendmessage'])
 def send_message_command(message):
-    bot.send_message(message.chat.id, "Введите сообщение, которое вы хотите отправить создателю:")
+    bot.send_message(message.chat.id, "Введите сообщение, которое вы хотите отправить:")
     bot.register_next_step_handler(message, handle_send_message)
 
 # Функция для обработки сообщения
@@ -186,7 +186,7 @@ def handle_send_message(message):
     # Отправляем сообщение создателю
     creator_chat_id = os.getenv('CREATOR_CHAT_ID')  # Используем переменную окружения
     bot.send_message(creator_chat_id, message_to_creator)
-    bot.send_message(message.chat.id, "Ваше сообщение отправлено создателю. Спасибо!", reply_markup=create_keyboard())
+    bot.send_message(message.chat.id, "Ваше сообщение отправлено. Спасибо!", reply_markup=create_keyboard())
 
     # Добавляем запись в историю
     history.append({
