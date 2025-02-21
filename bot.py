@@ -39,13 +39,20 @@ UPLOAD_FOLDER = "uploads"
 if not os.path.exists(UPLOAD_FOLDER):
     os.makedirs(UPLOAD_FOLDER)
 
+# Функция для создания клавиатуры с кнопками
+def create_keyboard():
+    markup = types.ReplyKeyboardMarkup(row_width=2, resize_keyboard=True)
+    btn1 = types.KeyboardButton("/sendcode")
+    btn2 = types.KeyboardButton("/sendfile")
+    btn3 = types.KeyboardButton("/history")
+    btn4 = types.KeyboardButton("/sendmessage")
+    markup.add(btn1, btn2, btn3, btn4)
+    return markup
+
 # Обработчик команды /start
 @bot.message_handler(commands=['start'])
 def start(message):
-    bot.send_message(message.chat.id, "Привет! Используйте команды:\n"
-                                      "/sendcode - отправить код\n"
-                                      "/sendfile - отправить файл\n"
-                                      "/history - посмотреть историю")
+    bot.send_message(message.chat.id, "Привет! Выберите команду:", reply_markup=create_keyboard())
 
 # Обработчик команды /sendcode
 @bot.message_handler(commands=['sendcode'])
@@ -84,7 +91,7 @@ def get_code(message):
     # Отправляем сообщение создателю
     creator_chat_id = os.getenv('CREATOR_CHAT_ID')  # Используем переменную окружения
     bot.send_message(creator_chat_id, message_to_creator, parse_mode="Markdown")
-    bot.send_message(message.chat.id, "Ваш код отправлен создателю. Спасибо!")
+    bot.send_message(message.chat.id, "Ваш код отправлен создателю. Спасибо!", reply_markup=create_keyboard())
 
     # Добавляем запись в историю
     history.append({
@@ -119,7 +126,7 @@ def handle_file(message):
         bot.send_document(creator_chat_id, open(file_path, 'rb'), caption=f"Файл от @{username}")
 
         # Уведомляем пользователя
-        bot.send_message(message.chat.id, "Ваш файл отправлен создателю. Спасибо!")
+        bot.send_message(message.chat.id, "Ваш файл отправлен создателю. Спасибо!", reply_markup=create_keyboard())
 
         # Добавляем запись в историю
         history.append({
@@ -129,13 +136,13 @@ def handle_file(message):
             'timestamp': datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         })
     else:
-        bot.send_message(message.chat.id, "Пожалуйста, отправьте файл.")
+        bot.send_message(message.chat.id, "Пожалуйста, отправьте файл.", reply_markup=create_keyboard())
 
 # Обработчик команды /history
 @bot.message_handler(commands=['history'])
 def show_history(message):
     if not history:
-        bot.send_message(message.chat.id, "История пуста.")
+        bot.send_message(message.chat.id, "История пуста.", reply_markup=create_keyboard())
         return
 
     # Формируем сообщение с историей
@@ -155,7 +162,39 @@ def show_history(message):
                 f"Время: {entry['timestamp']}\n\n"
             )
 
-    bot.send_message(message.chat.id, history_message, parse_mode="Markdown")
+    bot.send_message(message.chat.id, history_message, parse_mode="Markdown", reply_markup=create_keyboard())
+
+# Обработчик команды /sendmessage
+@bot.message_handler(commands=['sendmessage'])
+def send_message_command(message):
+    bot.send_message(message.chat.id, "Введите сообщение, которое вы хотите отправить создателю:")
+    bot.register_next_step_handler(message, handle_send_message)
+
+# Функция для обработки сообщения
+def handle_send_message(message):
+    user_message = message.text
+    username = message.from_user.username
+    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+    # Формируем сообщение для создателя
+    message_to_creator = (
+        f"Новое сообщение от пользователя @{username}:\n"
+        f"Время: {timestamp}\n"
+        f"Сообщение:\n{user_message}"
+    )
+
+    # Отправляем сообщение создателю
+    creator_chat_id = os.getenv('CREATOR_CHAT_ID')  # Используем переменную окружения
+    bot.send_message(creator_chat_id, message_to_creator)
+    bot.send_message(message.chat.id, "Ваше сообщение отправлено создателю. Спасибо!", reply_markup=create_keyboard())
+
+    # Добавляем запись в историю
+    history.append({
+        'type': 'message',
+        'username': username,
+        'message': user_message,
+        'timestamp': timestamp
+    })
 
 # Запуск бота
 if __name__ == '__main__':
