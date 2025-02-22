@@ -270,11 +270,20 @@ def start_tic_tac_toe(message):
 def show_tic_tac_toe_board(message):
     board = user_data[message.chat.id]["board"]
     markup = types.InlineKeyboardMarkup(row_width=3)
-    for i in range(9):
-        btn = types.InlineKeyboardButton(board[i], callback_data=f"ttt_{i}")
-        markup.add(btn)
+    
+    # Добавляем кнопки рядами по три
+    for i in range(0, 9, 3):
+        row = [
+            types.InlineKeyboardButton(board[i], callback_data=f"ttt_{i}"),
+            types.InlineKeyboardButton(board[i+1], callback_data=f"ttt_{i+1}"),
+            types.InlineKeyboardButton(board[i+2], callback_data=f"ttt_{i+2}")
+        ]
+        markup.add(*row)
+    
+    # Добавляем кнопку выхода
     exit_btn = types.InlineKeyboardButton("🚪 Выйти", callback_data="exit_game")
     markup.add(exit_btn)
+    
     bot.send_message(message.chat.id, "🎮 Крестики-нолики. Ваш ход (X):", reply_markup=markup)
 
 # Функция для обработки хода в крестики-нолики
